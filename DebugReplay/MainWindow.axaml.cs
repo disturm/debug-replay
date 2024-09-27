@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using Avalonia.Controls;
 using Avalonia.Media;
 using DebugReplay.Helpers;
+using Pen = System.Drawing.Pen;
 
 namespace DebugReplay;
 
@@ -38,7 +40,7 @@ public partial class MainWindow : Window
 
             for (var i = 0; i < 5; i++)
             {
-                for (var j = 0; i < 3; i++)
+                for (var j = 0; j < 3; j++)
                 {
                     var rootX = (i * 250 - 100 * j)
                         + 50 * random.NextDouble(); // Немного случайности в положение дерева
@@ -73,17 +75,17 @@ public partial class MainWindow : Window
                 var newBranchAngle = branchAngle + i * Math.PI / 6 * (1 + 0.4 * random.NextDouble());
                 var newBranchLength = branchLength * 0.6 * (1 + 0.2 * random.NextDouble());
                 DrawTree(graphics, endX, endY, newBranchAngle, newBranchLength,
-                    currentGeneration, maxGeneration);
+                    currentGeneration + 1, maxGeneration);
             }
         }
         
-        private System.Drawing.Pen GetBranchPen(int currentGeneration, int maxGeneration)
+        private Pen GetBranchPen(int currentGeneration, int maxGeneration)
         {
             //// Для кэширования.
             //// Если pen для текущего поколения уже построен и закэширован, то берем его из кэша
-            //var generationKey = BuildGenerationKey(currentGeneration, maxGeneration);
-            //if (branchPenCache.ContainsKey(generationKey))
-            //    return branchPenCache[generationKey];
+            var generationKey = BuildGenerationKey(currentGeneration, maxGeneration);
+            if (branchPenCache.ContainsKey(generationKey))
+                return branchPenCache[generationKey];
 
             // Иначе строим новый pen
             var startBranchColor = Colors.SaddleBrown;
@@ -99,21 +101,24 @@ public partial class MainWindow : Window
 
             var branchWidth = Math.Pow(1.5, 6 * (maxGeneration - currentGeneration) / maxGeneration);
 
-            var branchPen = new System.Drawing.Pen(branchColor, (float)branchWidth);
+            var branchPen = new Pen(branchColor, (float)branchWidth);
 
             //// Для кэширования.
             //// Кэшируем построенный для поколения pen
-            //branchPenCache[generationKey] = branchPen;
+            branchPenCache[generationKey] = branchPen;
 
             return branchPen;
         }
 
-        //// Для кэширования.
-        //private Dictionary<int[], Pen> branchPenCache = new Dictionary<int[], Pen>();
+        // Для кэширования.
+        private Dictionary<long, Pen> branchPenCache = new();
 
-        //// Для кэширования.
-        //private int[] BuildGenerationKey(int currentGeneration, int maxGeneration)
-        //{
-        //    return new[] { currentGeneration, maxGeneration };
-        //}
+        // Для кэширования.
+        private long BuildGenerationKey(int currentGeneration, int maxGeneration)
+        {
+            long key = currentGeneration;
+            key <<= 32;
+            key += maxGeneration;
+            return key;
+        }
 }
