@@ -1,24 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Windows.Forms;
+using Avalonia.Controls;
+using Avalonia.Media;
+using DebugReplay.Helpers;
 
-namespace DebugReplay
+namespace DebugReplay;
+
+public partial class MainWindow : Window
 {
-    public partial class MainForm : Form
-    {
-        private Random random = new Random();
+       private Random random = new();
 
-        public MainForm()
+        public MainWindow()
         {
             InitializeComponent();
             // Рисуем изображение и передаем в элемент формы, который умеет показывать изображения
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            pictureBox.Image = BuildScene();
+            Image.Source = BuildScene().ConvertToAvaloniaBitmap();
             stopwatch.Stop();
-            durationLabel.Text = $"Время отрисовки: {stopwatch.ElapsedMilliseconds} миллисекунд";
+            DurationLabel.Text = $"Время отрисовки: {stopwatch.ElapsedMilliseconds} миллисекунд";
         }
 
         private Bitmap BuildScene()
@@ -31,9 +32,9 @@ namespace DebugReplay
             var graphics = Graphics.FromImage(image);
 
             // Небо
-            graphics.FillRectangle(Brushes.LightSkyBlue, 0, 0, width, height / 2);
+            graphics.FillRectangle(System.Drawing.Brushes.LightSkyBlue, 0, 0, width, height / 2);
             // Трава
-            graphics.FillRectangle(Brushes.ForestGreen, 0, height / 2, width, height);
+            graphics.FillRectangle(System.Drawing.Brushes.ForestGreen, 0, height / 2, width, height);
 
             for (var i = 0; i < 5; i++)
             {
@@ -42,7 +43,7 @@ namespace DebugReplay
                     var rootX = (i * 250 - 100 * j)
                         + 50 * random.NextDouble(); // Немного случайности в положение дерева
                     var rootY = (height / 2 + 50) + 100 * j
-                        + 50 * random.NextDouble(); // Немного случайности в положение дерева
+                        + 50 * random.NextDouble();        // Немного случайности в положение дерева
                     var branchLength = 50 * (1 + 0.3 * j); // Длина ветвей зависит от перспективы: чем ближе, тем больше
                     // Ось Y в 2D графике идет вниз, а дерево должны расти вверх, поэтому угол отрицательный.
                     var branchAngle = -Math.PI / 2;
@@ -53,18 +54,18 @@ namespace DebugReplay
 
             return image;
         }
-
+        
         private void DrawTree(Graphics graphics,
-            double startX, double startY, double branchAngle, double branchLength,
-            int currentGeneration, int maxGeneration)
+                              double startX, double startY, double branchAngle, double branchLength,
+                              int currentGeneration, int maxGeneration)
         {
             // Условие выхода из рекурсии
             if (currentGeneration > maxGeneration)
                 return;
 
             var branchPen = GetBranchPen(currentGeneration, maxGeneration);
-            double endX = startX + Math.Cos(branchAngle) * branchLength;
-            double endY = startY + Math.Sin(branchAngle) * branchLength;
+            var endX = startX + Math.Cos(branchAngle) * branchLength;
+            var endY = startY + Math.Sin(branchAngle) * branchLength;
             graphics.DrawLine(branchPen, (int)startX, (int)startY, (int)endX, (int)endY);
 
             for (var i = -1; i <= 1; i++)
@@ -75,8 +76,8 @@ namespace DebugReplay
                     currentGeneration, maxGeneration);
             }
         }
-
-        private Pen GetBranchPen(int currentGeneration, int maxGeneration)
+        
+        private System.Drawing.Pen GetBranchPen(int currentGeneration, int maxGeneration)
         {
             //// Для кэширования.
             //// Если pen для текущего поколения уже построен и закэширован, то берем его из кэша
@@ -85,8 +86,8 @@ namespace DebugReplay
             //    return branchPenCache[generationKey];
 
             // Иначе строим новый pen
-            var startBranchColor = Color.SaddleBrown;
-            var endBranchColor = Color.DarkGreen;
+            var startBranchColor = Colors.SaddleBrown;
+            var endBranchColor = Colors.DarkGreen;
 
             var red = ((maxGeneration - currentGeneration) * startBranchColor.R + currentGeneration * endBranchColor.R)
                 / maxGeneration;
@@ -94,11 +95,11 @@ namespace DebugReplay
                 / maxGeneration;
             var blue = ((maxGeneration - currentGeneration) * startBranchColor.B + currentGeneration * endBranchColor.B)
                 / maxGeneration;
-            var branchColor = Color.FromArgb(red, green, blue);
+            var branchColor = System.Drawing.Color.FromArgb((byte)red, (byte)green, (byte)blue);
 
             var branchWidth = Math.Pow(1.5, 6 * (maxGeneration - currentGeneration) / maxGeneration);
 
-            var branchPen = new Pen(branchColor, (float)branchWidth);
+            var branchPen = new System.Drawing.Pen(branchColor, (float)branchWidth);
 
             //// Для кэширования.
             //// Кэшируем построенный для поколения pen
@@ -115,5 +116,4 @@ namespace DebugReplay
         //{
         //    return new[] { currentGeneration, maxGeneration };
         //}
-    }
 }

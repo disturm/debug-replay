@@ -1,0 +1,15 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="DebugReplay.MainWindow"
+        Title="DebugReplay"
+        Width="600" 
+        Height="640"
+        CanResize="False">
+    <StackPanel>
+        <Image Name="Image" VerticalAlignment="Center"></Image>
+        <TextBlock HorizontalAlignment="Center" Margin="0 10 0 0" Name="DurationLabel"></TextBlock>
+    </StackPanel>
+</Window>
